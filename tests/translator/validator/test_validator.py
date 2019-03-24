@@ -1,10 +1,11 @@
 import os.path
 import pytest
 from unittest import TestCase
-from tests.translator.yaml_helper import yaml_parse
+from samtranslator.yaml_helper import yaml_parse
 from samtranslator.validator.validator import SamTemplateValidator
 
-input_folder = 'tests/translator/input'
+BASE_PATH = os.path.dirname(__file__)
+INPUT_FOLDER = os.path.join(BASE_PATH, os.pardir, 'input')
 
 @pytest.mark.parametrize('testcase', [
     'basic_function',
@@ -12,12 +13,15 @@ input_folder = 'tests/translator/input'
     'cloudwatch_logs_with_ref',
     'cloudwatchlog',
     'streams',
+    'sqs',
     'simpletable',
+    'simpletable_with_sse',
     'implicit_api',
     'explicit_api',
     'api_endpoint_configuration',
     'api_with_method_settings',
     'api_with_binary_media_types',
+    'api_with_minimum_compression_size',
     'api_with_resource_refs',
     'api_with_cors',
     'api_with_cors_and_only_methods',
@@ -54,9 +58,12 @@ input_folder = 'tests/translator/input'
     'function_with_resource_refs',
     'function_with_deployment_and_custom_role',
     'function_with_deployment_no_service_role',
+    'function_with_permissions_boundary',
     'function_with_policy_templates',
+    'function_with_sns_event_source_all_parameters',
     'globals_for_function',
     'globals_for_api',
+    'globals_for_simpletable',
     'all_policy_templates',
     'simple_table_ref_parameter_intrinsic',
     'simple_table_with_table_name',
@@ -69,6 +76,7 @@ def test_validate_template_success(testcase):
     excluded = [
         'api_endpoint_configuration',
         'api_with_binary_media_types',
+        'api_with_minimum_compression_size',
         'api_with_cors',
         'cloudwatch_logs_with_ref',
         'sns',
@@ -99,7 +107,7 @@ def test_validate_template_success(testcase):
     ]
     if testcase in excluded:
         return
-    manifest = yaml_parse(open(os.path.join(input_folder, testcase + '.yaml'), 'r'))
+    manifest = yaml_parse(open(os.path.join(INPUT_FOLDER, testcase + '.yaml'), 'r'))
     validation_errors = SamTemplateValidator.validate(manifest)
     has_errors = len(validation_errors)
     if has_errors:

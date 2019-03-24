@@ -1,6 +1,7 @@
 from samtranslator.public.sdk.resource import SamResourceType
 from samtranslator.public.intrinsics import is_intrinsics
 
+
 class Globals(object):
     """
     Class to parse and process Globals section in SAM template. If a property is specified at Global section for
@@ -27,7 +28,9 @@ class Globals(object):
             "Tracing",
             "KmsKeyArn",
             "AutoPublishAlias",
-            "DeploymentPreference"
+            "Layers",
+            "DeploymentPreference",
+            "PermissionsBoundary"
         ],
 
         # Everything except
@@ -35,6 +38,7 @@ class Globals(object):
         #   StageName: Because StageName cannot be overridden for Implicit APIs because of the current plugin
         #              architecture
         SamResourceType.Api.value: [
+            'Auth',
             "Name",
             "DefinitionUri",
             "CacheClusterEnabled",
@@ -43,11 +47,17 @@ class Globals(object):
             "EndpointConfiguration",
             "MethodSettings",
             "BinaryMediaTypes",
-            "Cors"
+            "MinimumCompressionSize",
+            "Cors",
+            "AccessLogSetting",
+            "CanarySetting",
+            "TracingEnabled"
+        ],
+
+        SamResourceType.SimpleTable.value: [
+            "SSESpecification"
         ]
     }
-
-    supported_resource_section_names = [x.replace(_RESOURCE_PREFIX, "") for x in supported_properties.keys()]
 
     def __init__(self, template):
         """
@@ -55,6 +65,11 @@ class Globals(object):
 
         :param dict template: SAM template to be parsed
         """
+        self.supported_resource_section_names = ([x.replace(self._RESOURCE_PREFIX, "")
+                                                 for x in self.supported_properties.keys()])
+        # Sort the names for stability in list ordering
+        self.supported_resource_section_names.sort()
+
         self.template_globals = {}
 
         if self._KEYWORD in template:
@@ -102,29 +117,29 @@ class Globals(object):
         globals = {}
 
         if not isinstance(globals_dict, dict):
-            raise InvalidGlobalsSectionException(self._KEYWORD, "It must be a non-empty dictionary".format(self._KEYWORD))
+            raise InvalidGlobalsSectionException(self._KEYWORD,
+                                                 "It must be a non-empty dictionary".format(self._KEYWORD))
 
-        for section_name, properties in globals_dict.iteritems():
+        for section_name, properties in globals_dict.items():
             resource_type = self._make_resource_type(section_name)
 
             if resource_type not in self.supported_properties:
                 raise InvalidGlobalsSectionException(self._KEYWORD,
-                                               "'{section}' is not supported. "
-                                               "Must be one of the following values - {supported}"
-                                               .format(section=section_name,
-                                                       supported=self.supported_resource_section_names))
+                                                     "'{section}' is not supported. "
+                                                     "Must be one of the following values - {supported}"
+                                                     .format(section=section_name,
+                                                             supported=self.supported_resource_section_names))
 
             if not isinstance(properties, dict):
                 raise InvalidGlobalsSectionException(self._KEYWORD, "Value of ${section} must be a dictionary")
 
-            for key, value in properties.iteritems():
+            for key, value in properties.items():
                 supported = self.supported_properties[resource_type]
                 if key not in supported:
                     raise InvalidGlobalsSectionException(self._KEYWORD,
-                                                   "'{key}' is not a supported property of '{section}'. "
-                                                   "Must be one of the following values - {supported}"
-                                                   .format(key=key, section=section_name, supported=supported))
-
+                                                         "'{key}' is not a supported property of '{section}'. "
+                                                         "Must be one of the following values - {supported}"
+                                                         .format(key=key, section=section_name, supported=supported))
 
             # Store all Global properties in a map with key being the AWS::Serverless::* resource type
             globals[resource_type] = GlobalProperties(properties)
@@ -133,8 +148,6 @@ class Globals(object):
 
     def _make_resource_type(self, key):
         return self._RESOURCE_PREFIX + key
-
-
 
 
 class GlobalProperties(object):
@@ -298,7 +311,6 @@ class GlobalProperties(object):
             raise TypeError(
                 "Unsupported type of objects. GlobalType={}, LocalType={}".format(token_global, token_local))
 
-
     def _merge_lists(self, global_list, local_list):
         """
         Merges the global list with the local list. List merging is simply a concatenation = global + local
@@ -369,7 +381,6 @@ class GlobalProperties(object):
         else:
             return self.TOKEN.PRIMITIVE
 
-
     class TOKEN:
         """
         Enum of tokens used in the merging
@@ -385,7 +396,7 @@ class InvalidGlobalsSectionException(Exception):
     Attributes:
         message -- explanation of the error
     """
-    def __init__(self, logical_id,  message):
+    def __init__(self, logical_id, message):
         self._logical_id = logical_id
         self._message = message
 

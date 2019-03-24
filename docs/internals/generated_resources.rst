@@ -70,6 +70,7 @@ Example:
       AutoPublishAlias: live
       DeploymentPreference: 
         Type: Linear10PercentEvery10Minutes
+        Role: "arn"
       ...
 
 
@@ -82,6 +83,8 @@ AWS::CodeDeploy::Application       ServerlessDeploymentApplication (only one per
 AWS::CodeDeploy::DeploymentGroup   MyFunction\ **DeploymentGroup** 
 AWS::IAM::Role                     CodeDeployServiceRole
 ================================== ================================
+
+  NOTE: ``AWS::IAM::Role`` resources are only generated if no Role parameter is supplied for DeploymentPreference
 
 With Events
 ~~~~~~~~~~~
@@ -209,6 +212,33 @@ Example:
           Properties:
             Stream: arn:aws:kinesis:us-east-1:123456789012:stream/my-stream
             StartingPosition: TRIM_HORIZON      
+      ...
+
+Additional generated resources:
+
+================================== ================================
+CloudFormation Resource Type       Logical ID 
+================================== ================================
+AWS::Lambda::Permissions           MyFunction\ **MyTrigger**\ Permission
+AWS::Lambda::EventSourceMapping    MyFunction\ **MyTrigger** 
+================================== ================================
+
+SQS
+^^^^^^^
+
+Example:
+
+.. code:: yaml
+
+  MyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      ...
+      Events:
+        MyTrigger:
+          Type: SQS
+          Properties:
+            Queue: arn:aws:sqs:us-east-1:123456789012:my-queue
       ...
 
 Additional generated resources:

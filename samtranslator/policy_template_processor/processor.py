@@ -6,6 +6,7 @@ from jsonschema.exceptions import ValidationError
 from samtranslator.policy_template_processor.template import Template
 from samtranslator.policy_template_processor.exceptions import TemplateNotFoundException
 
+
 class PolicyTemplatesProcessor(object):
     """
     Policy templates are equivalents of managed policies that can be customized with specific resource name or ARNs.
@@ -58,7 +59,7 @@ class PolicyTemplatesProcessor(object):
         PolicyTemplatesProcessor._is_valid_templates_dict(policy_templates_dict, schema)
 
         self.policy_templates = {}
-        for template_name, template_value_dict in policy_templates_dict["Templates"].iteritems():
+        for template_name, template_value_dict in policy_templates_dict["Templates"].items():
             self.policy_templates[template_name] = Template.from_dict(template_name, template_value_dict)
 
     def has(self, template_name):

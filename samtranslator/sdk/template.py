@@ -4,6 +4,7 @@ from samtranslator.sdk.resource import SamResource
 Classes representing SAM template and resources.
 """
 
+
 class SamTemplate(object):
     """
     Class representing the SAM template
@@ -26,7 +27,7 @@ class SamTemplate(object):
         :yields (string, SamResource): Tuple containing LogicalId and the resource
         """
 
-        for logicalId, resource_dict in self.resources.iteritems():
+        for logicalId, resource_dict in self.resources.items():
 
             resource = SamResource(resource_dict)
             needs_filter = resource.valid()

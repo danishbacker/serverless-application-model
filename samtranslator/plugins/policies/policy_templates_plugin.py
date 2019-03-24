@@ -3,6 +3,7 @@ from samtranslator.model.function_policies import FunctionPolicies, PolicyTypes
 from samtranslator.model.exceptions import InvalidResourceException
 from samtranslator.policy_template_processor.exceptions import InsufficientParameterValues, InvalidParameterValues
 
+
 class PolicyTemplatesForFunctionPlugin(BasePlugin):
     """
     Use this plugin to allow the usage of Policy Templates in `Policies` section of AWS::Serverless::Function resource.
@@ -57,8 +58,8 @@ class PolicyTemplatesForFunctionPlugin(BasePlugin):
             # We are processing policy templates. We know they have a particular structure:
             # {"templateName": { parameter_values_dict }}
             template_data = policy_entry.data
-            template_name = template_data.keys()[0]
-            template_parameters = template_data.values()[0]
+            template_name = list(template_data.keys())[0]
+            template_parameters = list(template_data.values())[0]
 
             try:
 
@@ -67,7 +68,7 @@ class PolicyTemplatesForFunctionPlugin(BasePlugin):
 
             except InsufficientParameterValues as ex:
                 # Exception's message will give lot of specific details
-                raise InvalidResourceException(logical_id, ex.message)
+                raise InvalidResourceException(logical_id, str(ex))
             except InvalidParameterValues:
                 raise InvalidResourceException(logical_id,
                                                "Must specify valid parameter values for policy template '{}'"

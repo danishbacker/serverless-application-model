@@ -4,6 +4,7 @@ from samtranslator.intrinsics.resolver import IntrinsicsResolver
 from samtranslator.intrinsics.actions import RefAction
 from samtranslator.policy_template_processor.exceptions import InsufficientParameterValues, InvalidParameterValues
 
+
 class Template(object):
     """
     Class representing a single policy template. It includes the name, parameters and template dictionary.
@@ -33,7 +34,8 @@ class Template(object):
 
         :param dict parameter_values: Dict containing values for each parameter defined in the template
         :return dict: Dictionary containing policy statement
-        :raises InvalidParameterValues: If parameter values is not a valid dictionary or does not contain values for all parameters
+        :raises InvalidParameterValues: If parameter values is not a valid dictionary or does not contain values
+            for all parameters
         :raises InsufficientParameterValues: If the parameter values don't have values for all required parameters
         """
 
@@ -46,7 +48,7 @@ class Template(object):
         # Select only necessary parameter_values. this is to prevent malicious or accidental
         # injection of values for parameters not intended in the template. This is important because "Ref" resolution
         # will substitute any references for which a value is provided.
-        necessary_parameter_values = {name: value for name, value in parameter_values.iteritems()
+        necessary_parameter_values = {name: value for name, value in parameter_values.items()
                                       if name in self.parameters}
 
         # Only "Ref" is supported
@@ -71,7 +73,7 @@ class Template(object):
         if not self._is_valid_parameter_values(parameter_values):
             raise InvalidParameterValues("Parameter values are required to process a policy template")
 
-        return list(self.parameters.viewkeys() - parameter_values.viewkeys())
+        return list(set(self.parameters.keys()) - set(parameter_values.keys()))
 
     @staticmethod
     def _is_valid_parameter_values(parameter_values):
